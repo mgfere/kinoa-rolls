@@ -891,6 +891,30 @@ def agregar_al_carrito():
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+    
+
+def inicializar_roles():
+    """Crea los roles básicos si no existen"""
+    roles_necesarios = ['cliente', 'admin']
+    
+    for rol_nombre in roles_necesarios:
+        rol_existente = db_session.query(Rol).filter_by(nombre=rol_nombre).first()
+        if not rol_existente:
+            nuevo_rol = Rol(nombre=rol_nombre)
+            db_session.add(nuevo_rol)
+            print(f"Rol '{rol_nombre}' creado")
+    
+    try:
+        db_session.commit()
+        print("Roles inicializados correctamente")
+    except Exception as e:
+        db_session.rollback()
+        print(f"Error al crear roles: {e}")
+
+if __name__ == '__main__':
+    # Inicializar roles antes de correr la app
+    with app.app_context():
+        inicializar_roles()
 
 # ----------------------------------------------------------------------
 ## 🧹 CIERRE DE SESIÓN PARA EVITAR TIMEOUTERROR
