@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Admin | Kinoa Rolls</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        /* Estilos base Kinoa para el Navbar */
+        :root {
+            --kinoa-verde-claro: #e9f7e9; 
+            --kinoa-verde-oscuro: #2e602e; 
+            --kinoa-verde-exito: #5cb85c; 
+        }
+        
+        .navbar-kinoa {
+            background-color: var(--kinoa-verde-claro) !important;
+            border-bottom: 2px solid var(--kinoa-verde-exito);
+            padding-top: 0.5rem; 
+            padding-bottom: 0.5rem;
+        }
+        .navbar-kinoa .navbar-brand,
+        .navbar-kinoa .text-kinoa-dark,
+        .navbar-kinoa .bi {
+            color: var(--kinoa-verde-oscuro) !important;
+        }
+        .navbar-kinoa .btn-outline-dark-kinoa {
+            color: var(--kinoa-verde-oscuro);
+            border-color: var(--kinoa-verde-oscuro);
+            font-size: 0.8rem; 
+        }
+        .navbar-kinoa .btn-outline-dark-kinoa:hover {
+            background-color: var(--kinoa-verde-oscuro);
+            color: white;
+        }
+        .navbar-brand img {
+            width: 60px; 
+            height: 60px; 
+        }
+
+        /* 🟢 SOLUCIÓN PRINCIPAL: Compensar el navbar fixed-top */
+        .container {
+            margin-top: 6rem !important; /* Ajusta este valor si el navbar tiene más o menos altura */
+        }
+
+        /* Estilos adicionales mínimos para la tabla */
+        .order-status {
+            min-width: 120px;
+        }
+        .btn-info {
+             background-color: #17a2b8; 
+             border-color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar fixed-top navbar-kinoa shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('admin_dashboard') }}">
+                <img src="{{ url_for('static', filename='images/logo_kinoa_rolls.png') }}" width="30" height="30" alt="Logo Kinoa Rolls">
+                <span class="ms-2">Kinoa Rolls Admin</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('profile') }}" class="me-3 d-flex align-items-center text-decoration-none text-kinoa-dark" title="Ver Perfil">
+                    <span class="me-2 d-none d-md-inline text-kinoa-dark fw-bold">{{ usuario_actual.nombre_usuario }}</span>
+                    {% if usuario_actual.perfil and usuario_actual.perfil.foto_perfil %}
+                    <img src="{{ url_for('profile_picture', usuario_id=usuario_actual.id_usuario) }}" class="rounded-circle border border-1 border-kinoa-dark" width="25" height="25" alt="Foto de Perfil">
+                    {% else %}
+                    <i class="bi bi-person-circle fs-5"></i>
+                    {% endif %}
+                </a>
+                
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-dark-kinoa d-flex align-items-center" title="Cerrar Sesión">
+                    <i class="bi bi-box-arrow-right me-1"></i> Salir
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mb-4 display-6"><i class="bi bi-receipt me-2"></i> Gestión de Pedidos</h1>
+        
+        <div class="btn-group mb-4 shadow-sm" role="group" aria-label="Navegación de Administrador">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-success">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="btn btn-success active">
+                <i class="bi bi-receipt"></i> Pedidos
+            </a>
+            <a href="{{ url_for('admin_products') }}" class="btn btn-outline-success">
+                <i class="bi bi-box-seam"></i> Productos
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-success">
+                <i class="bi bi-people"></i> Usuarios
+            </a>
+        </div>
+        
+        <hr>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% endif %}
+        {% endwith %}
+        
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-list-task me-2"></i> Listado Completo de Pedidos</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-hash"></i> ID</th>
+                                <th><i class="bi bi-tag"></i> Código</th>
+                                <th><i class="bi bi-person"></i> Cliente</th>
+                                <th><i class="bi bi-currency-dollar"></i> Total</th>
+                                <th><i class="bi bi-sliders"></i> Estado</th>
+                                <th><i class="bi bi-calendar"></i> Fecha</th>
+                                <th><i class="bi bi-lightning"></i> Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pedido in pedidos %}
+                            <tr>
+                                <td>{{ pedido.id_pedido }}</td>
+                                <td><strong class="text-success">#{{ pedido.codigo_pedido }}</strong></td>
+                                <td>{{ pedido.cliente.nombre_usuario }}</td>
+                                <td><span class="fw-bold">${{ "%.2f"|format(pedido.total) }}</span></td>
+                                <td>
+                                    <select class="form-select form-select-sm order-status" 
+                                            data-order-id="{{ pedido.id_pedido }}"
+                                            onchange="updateOrderStatus(this)">
+                                        <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                        <option value="preparando" {% if pedido.estado == 'preparando' %}selected{% endif %}>Preparando</option>
+                                        <option value="listo" {% if pedido.estado == 'listo' %}selected{% endif %}>Listo para Entrega</option>
+                                        <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+                                        <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                    </select>
+                                    <span class="status-indicator text-muted small mt-1 d-block" id="status-{{ pedido.id_pedido }}"></span>
+                                </td>
+                                <td>{{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info btn-detalles" data-id="{{ pedido.id_pedido }}">
+                                        <i class="bi bi-eye"></i> Detalles
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted p-5">
+                                    <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
+                                    No se encontraron pedidos en el sistema.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="detallesModal" tabindex="-1" aria-labelledby="detallesModalLabel" aria-hidden="true">
+        </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ... Funciones JavaScript para updateOrderStatus y btn-detalles ...
+    </script>
+</body>
+</html>

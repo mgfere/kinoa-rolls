@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle del Pedido | Kinoa Rolls{% endblock %}
+
+{% block customCSS %}
+<style>
+    :root {
+        --kinoa-verde-claro: #e9f7e9;
+        --kinoa-verde-medio: #4caf50;
+        --kinoa-verde-oscuro: #2e602e;
+        --kinoa-verde-exito: #5cb85c;
+        --kinoa-rojo-precio: #c9302c;
+        --kinoa-gris-texto: #6c757d;
+        --kinoa-gris-claro: #f8fff8;
+        --kinoa-blanco: #ffffff;
+        --kinoa-sombra: rgba(46, 96, 46, 0.1);
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--kinoa-verde-claro) 0%, #f0f9f0 100%);
+        min-height: 100vh;
+    }
+
+    .order-card {
+        background: var(--kinoa-blanco);
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 15px 35px rgba(46, 96, 46, 0.15);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(46, 96, 46, 0.2);
+    }
+
+    .order-header {
+        background: linear-gradient(135deg, var(--kinoa-verde-oscuro), #1e401e);
+        color: white;
+        padding: 25px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .order-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .order-item {
+        padding: 20px;
+        border-bottom: 1px solid rgba(46, 96, 46, 0.1);
+        transition: background-color 0.2s;
+    }
+
+    .order-item:hover {
+        background-color: var(--kinoa-verde-claro);
+    }
+
+    .item-quantity {
+        background: var(--kinoa-verde-claro);
+        color: var(--kinoa-verde-oscuro);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--kinoa-verde-exito), var(--kinoa-verde-medio));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .status-timeline {
+        position: relative;
+        padding-left: 30px;
+        margin: 30px 0;
+    }
+
+    .status-timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--kinoa-verde-medio);
+    }
+
+    .timeline-step {
+        position: relative;
+        margin-bottom: 25px;
+        padding-left: 20px;
+    }
+
+    .timeline-step::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 5px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--kinoa-verde-medio);
+        border: 3px solid white;
+        box-shadow: 0 0 0 4px var(--kinoa-verde-claro);
+    }
+
+    .timeline-step.active::before {
+        background: var(--kinoa-verde-exito);
+        animation: glow 1.5s infinite;
+    }
+
+    @keyframes glow {
+        0%, 100% { box-shadow: 0 0 0 4px var(--kinoa-verde-claro); }
+        50% { box-shadow: 0 0 0 6px rgba(92, 184, 92, 0.3); }
+    }
+    
+    .estado-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .estado-pendiente {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .estado-preparacion {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+    
+    .estado-enviado {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .estado-entregado {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .estado-pendiente {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Encabezado del Pedido -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="order-card">
+                <!-- Header -->
+                <div class="order-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h1 class="h3 fw-bold mb-2">Pedido #{{ pedido.codigo_pedido }}</h1>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="order-badge">
+                                    <i class="bi bi-calendar-check"></i>
+                                    {{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') if pedido.fecha_creacion else 'Fecha no disponible' }}
+                                </span>
+                                <span class="estado-badge estado-pendiente">
+                                    {% if pedido.estado == 'pendiente' %}
+                                    <i class="bi bi-clock"></i> Pendiente
+                                    {% elif pedido.estado == 'en_preparacion' %}
+                                    <i class="bi bi-egg-fried"></i> En preparación
+                                    {% elif pedido.estado == 'enviado' %}
+                                    <i class="bi bi-truck"></i> Enviado
+                                    {% elif pedido.estado == 'entregado' %}
+                                    <i class="bi bi-check-circle"></i> Entregado
+                                    {% else %}
+                                    {{ pedido.estado }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h3 class="fw-bold mb-0">${{ "%.2f"|format(pedido.total) }}</h3>
+                            <small class="text-white-50">Total (con impuestos)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Cliente -->
+                <div class="p-4 border-bottom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-kinoa-oscuro mb-3">
+                                <i class="bi bi-person-circle me-2"></i>Información del Cliente
+                            </h6>
+                            <p class="mb-1"><strong>Cliente:</strong> {{ pedido.cliente.nombre_usuario }}</p>
+                            <p class="mb-0"><strong>Teléfono:</strong> {{ pedido.cliente.telefono or 'No especificado' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-kinoa-oscuro mb-3">
+                                <i class="bi bi-geo-alt me-2"></i>Notas del Pedido
+                            </h6>
+                            <p class="mb-0">{{ pedido.notas or 'Sin notas adicionales' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items del Pedido -->
+                <div class="p-4">
+                    <h6 class="fw-bold text-kinoa-oscuro mb-4">
+                        <i class="bi bi-basket3 me-2"></i>Productos del Pedido
+                    </h6>
+                    
+                    {% if pedido.detalles %}
+                        {% set subtotal_pedido = 0 %}
+                        {% for detalle in pedido.detalles %}
+                        {% set item_total = detalle.cantidad * detalle.precio_unitario %}
+                        {% set subtotal_pedido = subtotal_pedido + item_total %}
+                        <div class="order-item">
+                            <div class="row align-items-center">
+                                <div class="col-1 text-center">
+                                    <div class="item-quantity">{{ detalle.cantidad }}</div>
+                                </div>
+                                <div class="col-7 col-md-8">
+                                    <h6 class="fw-bold mb-1">{{ detalle.producto.nombre }}</h6>
+                                    <small class="text-muted">${{ "%.2f"|format(detalle.precio_unitario) }} c/u</small>
+                                </div>
+                                <div class="col-4 col-md-3 text-end">
+                                    <h5 class="fw-bold text-danger mb-0">${{ "%.2f"|format(item_total) }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-3">No hay detalles disponibles para este pedido.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Resumen Total -->
+                <div class="p-4 bg-light">
+                    <div class="row justify-content-end">
+                        <div class="col-md-6">
+                            <!-- Usar el subtotal calculado -->
+                            {% set tax = pedido.total - subtotal_pedido %}
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal:</span>
+                                <span>${{ "%.2f"|format(subtotal_pedido) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Envío:</span>
+                                <span class="text-success">GRATIS</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Impuestos (12%):</span>
+                                <span>${{ "%.2f"|format(tax) }}</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <h5 class="fw-bold">Total Final:</h5>
+                                <h4 class="fw-bold text-success">${{ "%.2f"|format(pedido.total) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado del Pedido -->
+            <div class="order-card mt-4">
+                <div class="p-4">
+                    <h6 class="fw-bold text-kinoa-oscuro mb-4">
+                        <i class="bi bi-truck me-2"></i>Seguimiento del Pedido
+                    </h6>
+                    
+                    <div class="status-timeline">
+                        <div class="timeline-step {% if pedido.estado in ['pendiente', 'en_preparacion', 'enviado', 'entregado'] %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">Pedido Confirmado</h6>
+                            <small class="text-muted">Tu pedido ha sido recibido y confirmado</small>
+                            <small class="text-success d-block mt-1">
+                                {{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') if pedido.fecha_creacion else '' }}
+                            </small>
+                        </div>
+                        <div class="timeline-step {% if pedido.estado in ['en_preparacion', 'enviado', 'entregado'] %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">En Preparación</h6>
+                            <small class="text-muted">Nuestros chefs están preparando tu pedido</small>
+                        </div>
+                        <div class="timeline-step {% if pedido.estado in ['enviado', 'entregado'] %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">En Camino</h6>
+                            <small class="text-muted">El repartidor está en camino a tu dirección</small>
+                        </div>
+                        <div class="timeline-step {% if pedido.estado == 'entregado' %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">Entregado</h6>
+                            <small class="text-muted">Pedido entregado satisfactoriamente</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensaje de Confirmación -->
+            <div class="text-center mt-5">
+                {% if pedido.estado == 'pendiente' %}
+                <div class="success-icon" style="background: linear-gradient(135deg, #ffc107, #ff9800);">
+                    <i class="bi bi-clock-history fs-1 text-white"></i>
+                </div>
+                <h3 class="fw-bold text-kinoa-oscuro mb-3">¡Pedido en Proceso!</h3>
+                <p class="text-muted mb-4">Tu pedido ha sido confirmado y está siendo procesado. Te notificaremos cuando esté en camino.</p>
+                {% elif pedido.estado == 'entregado' %}
+                <div class="success-icon">
+                    <i class="bi bi-check-lg fs-1 text-white"></i>
+                </div>
+                <h3 class="fw-bold text-kinoa-oscuro mb-3">¡Pedido Entregado!</h3>
+                <p class="text-muted mb-4">Tu pedido ha sido entregado satisfactoriamente. ¡Gracias por tu compra!</p>
+                {% else %}
+                <div class="success-icon">
+                    <i class="bi bi-check-lg fs-1 text-white"></i>
+                </div>
+                <h3 class="fw-bold text-kinoa-oscuro mb-3">¡Pedido Confirmado!</h3>
+                <p class="text-muted mb-4">Tu pedido ha sido procesado exitosamente. Te notificaremos cuando esté en camino.</p>
+                {% endif %}
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('mis_pedidos') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-clock-history me-2"></i>Ver Mis Pedidos
+                    </a>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary" style="background: linear-gradient(135deg, var(--kinoa-verde-oscuro), #1e401e); border: none;">
+                        <i class="bi bi-arrow-left me-2"></i>Seguir Comprando
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

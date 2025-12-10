@@ -1,0 +1,61 @@
+{% extends './base.html' %}
+
+{% block title %}Inicio de sesión - Kinoa Rolls{% endblock %}
+
+{% block body %}
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card shadow-sm" style="max-width: 350px; width: 100%;" data-bs-theme="custom">
+        <div class="card-body p-4">
+            
+            <!-- AGREGAR ESTO PARA MENSAJES FLASH -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="text-center mb-3">
+                <img src="{{ url_for('static', filename='images/logo_kinoa_rolls.png') }}" 
+                     alt="Logo Kinoa Rolls" 
+                     class="img-fluid" 
+                     width="150">
+            </div>
+            
+            <h5 class="card-title text-center mb-4">Iniciar sesión</h5>
+
+            <form action="/login" method="post">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" 
+                           id="nombre_usuario" name="nombre_usuario" 
+                           placeholder="usuario" required autofocus>
+                    <label for="nombre_usuario">
+                        <i class="bi bi-person me-1"></i> Usuario
+                    </label>
+                </div>
+                
+                <div class="form-floating mb-4">
+                    <input type="password" class="form-control" 
+                           id="contraseña" name="contraseña" 
+                           placeholder="contraseña" required>
+                    <label for="contraseña">
+                        <i class="bi bi-lock me-1"></i> Contraseña
+                    </label>
+                </div>
+                
+                <p class="mt-3 text-center">¿No tienes cuenta? 
+                    <a href="{{ url_for('register') }}">Regístrate aquí</a>
+                </p>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    Iniciar sesión
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

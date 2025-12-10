@@ -1,0 +1,148 @@
+/* Colores personalizados para Kinoa Rolls */
+:root {
+    /* Colores principales - 3 colores */
+    --kinoa-white: #ffffff;         /* Blanco puro */
+    --kinoa-red: #ff6b6b;          /* Rojo fuerte/sushi */
+    --kinoa-green: #5ebc71;        /* Verde claro/wasabi */
+    --kinoa-green-dark: #469b5a;   /* Verde oscuro (opcional) */
+    
+    /* Colores secundarios */
+    --kinoa-dark: #224231;         /* Negro sushi */
+    --kinoa-light: #f7f7f7;        /* Gris claro/arroz */
+    --kinoa-yellow: #ffd93d;       /* Amarillo (accent) */
+}
+
+/* Estilos para el tema custom */
+[data-bs-theme="custom"] {
+    /* Usamos el verde como color principal */
+    --bs-primary: var(--kinoa-green);
+    --bs-primary-rgb: 107, 207, 127;
+    --bs-secondary: var(--kinoa-red);
+    --bs-secondary-rgb: 255, 107, 107;
+    --bs-success: var(--kinoa-green);
+    --bs-danger: var(--kinoa-red);
+    
+    /* Fondo y texto */
+    --bs-body-color: var(--kinoa-dark);
+    --bs-body-bg: var(--kinoa-white);
+    --bs-border-color: rgba(107, 207, 127, 0.2);
+}
+
+/* Botón verde (principal) */
+[data-bs-theme="custom"] .btn-primary {
+    background-color: var(--kinoa-green);
+    border-color: var(--kinoa-green);
+    color: var(--kinoa-white);
+}
+
+[data-bs-theme="custom"] .btn-primary:hover {
+    background-color: var(--kinoa-green-dark);
+    border-color: var(--kinoa-green-dark);
+    color: var(--kinoa-white);
+}
+
+/* Botón rojo (secundario/danger) */
+[data-bs-theme="custom"] .btn-danger {
+    background-color: var(--kinoa-red);
+    border-color: var(--kinoa-red);
+    color: var(--kinoa-white);
+}
+
+[data-bs-theme="custom"] .btn-danger:hover {
+    background-color: #ff5252;
+    border-color: #ff5252;
+    color: var(--kinoa-white);
+}
+
+/* Botón outline (borde verde) */
+[data-bs-theme="custom"] .btn-outline-primary {
+    color: var(--kinoa-green);
+    border-color: var(--kinoa-green);
+}
+
+[data-bs-theme="custom"] .btn-outline-primary:hover {
+    background-color: var(--kinoa-green);
+    border-color: var(--kinoa-green);
+    color: var(--kinoa-white);
+}
+
+/* Enlaces - verdes */
+[data-bs-theme="custom"] a {
+    color: var(--kinoa-green);
+    text-decoration: none;
+}
+
+[data-bs-theme="custom"] a:hover {
+    color: var(--kinoa-green-dark);
+}
+
+/* Enlaces rojos (para acentos) */
+[data-bs-theme="custom"] .text-red {
+    color: var(--kinoa-red);
+}
+
+[data-bs-theme="custom"] .text-red:hover {
+    color: #ff5252;
+}
+
+/* Card personalizada con bordes sutiles */
+[data-bs-theme="custom"] .card {
+    border: 1px solid rgba(107, 207, 127, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background-color: var(--kinoa-white);
+}
+
+/* Formularios - foco verde */
+[data-bs-theme="custom"] .form-control:focus {
+    border-color: var(--kinoa-green);
+    box-shadow: 0 0 0 0.25rem rgba(107, 207, 127, 0.25);
+}
+
+/* Alertas con colores temáticos */
+[data-bs-theme="custom"] .alert-success {
+    background-color: rgba(107, 207, 127, 0.1);
+    border-color: rgba(107, 207, 127, 0.3);
+    color: var(--kinoa-green-dark);
+}
+
+[data-bs-theme="custom"] .alert-danger {
+    background-color: rgba(255, 107, 107, 0.1);
+    border-color: rgba(255, 107, 107, 0.3);
+    color: var(--kinoa-red);
+}
+
+/* Badges */
+[data-bs-theme="custom"] .badge.bg-primary {
+    background-color: var(--kinoa-green) !important;
+}
+
+[data-bs-theme="custom"] .badge.bg-danger {
+    background-color: var(--kinoa-red) !important;
+}
+
+/* Clases de utilidad directas para usar en HTML */
+.text-kinoa-green {
+    color: var(--kinoa-green) !important;
+}
+
+.text-kinoa-red {
+    color: var(--kinoa-red) !important;
+}
+
+.bg-kinoa-green {
+    background-color: var(--kinoa-green) !important;
+    color: var(--kinoa-white) !important;
+}
+
+.bg-kinoa-red {
+    background-color: var(--kinoa-red) !important;
+    color: var(--kinoa-white) !important;
+}
+
+.border-kinoa-green {
+    border-color: var(--kinoa-green) !important;
+}
+
+.border-kinoa-red {
+    border-color: var(--kinoa-red) !important;
+}

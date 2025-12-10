@@ -1,0 +1,670 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar Pedido | Kinoa Rolls{% endblock %}
+
+{% block customCSS %}
+<style>
+    :root {
+        --kinoa-verde-claro: #e9f7e9;
+        --kinoa-verde-medio: #4caf50;
+        --kinoa-verde-oscuro: #2e602e;
+        --kinoa-verde-exito: #5cb85c;
+        --kinoa-rojo-precio: #c9302c;
+        --kinoa-gris-texto: #6c757d;
+        --kinoa-gris-claro: #f8fff8;
+        --kinoa-blanco: #ffffff;
+        --kinoa-sombra: rgba(46, 96, 46, 0.1);
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--kinoa-verde-claro) 0%, #f0f9f0 100%);
+        min-height: 100vh;
+    }
+
+    .checkout-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .checkout-card {
+        background: var(--kinoa-blanco);
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 40px rgba(46, 96, 46, 0.15);
+        overflow: hidden;
+    }
+
+    .checkout-header {
+        background: linear-gradient(135deg, var(--kinoa-verde-oscuro), #1e401e);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .step.active .step-number {
+        background: white;
+        color: var(--kinoa-verde-oscuro);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+    }
+
+    .step-text {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+
+    .step.active .step-text {
+        opacity: 1;
+        font-weight: 600;
+    }
+
+    .form-section {
+        padding: 30px;
+    }
+
+    .form-floating > .form-control {
+        border-radius: 12px;
+        border: 2px solid var(--kinoa-verde-claro);
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+    }
+
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+        color: var(--kinoa-gris-texto);
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: var(--kinoa-verde-medio);
+        box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+    }
+
+    .order-summary {
+        background: var(--kinoa-verde-claro);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+
+    .order-item-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed rgba(46, 96, 46, 0.2);
+        position: relative;
+    }
+
+    .delete-item-btn {
+        position: absolute;
+        left: -25px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .delete-item-btn:hover {
+        background: #c82333;
+        transform: scale(1.1);
+    }
+
+    .item-details {
+        flex: 1;
+        padding-left: 10px;
+    }
+
+    .item-quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 5px;
+    }
+
+    .qty-btn-small {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        border: 1px solid var(--kinoa-verde-oscuro);
+        background: white;
+        color: var(--kinoa-verde-oscuro);
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .qty-btn-small:hover {
+        background: var(--kinoa-verde-oscuro);
+        color: white;
+    }
+
+    .qty-input-small {
+        width: 40px;
+        height: 24px;
+        text-align: center;
+        border: 1px solid var(--kinoa-verde-claro);
+        border-radius: 4px;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, var(--kinoa-verde-medio), var(--kinoa-verde-oscuro));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 18px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        width: 100%;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(46, 96, 46, 0.3);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .address-fields {
+        background: var(--kinoa-verde-claro);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .empty-cart-message {
+        text-align: center;
+        padding: 30px;
+        color: var(--kinoa-gris-texto);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="checkout-container">
+        <!-- Encabezado -->
+        <div class="checkout-header rounded-top">
+            <h1 class="fw-bold mb-3">
+                <i class="bi bi-check-circle me-2"></i>Confirmar Pedido
+            </h1>
+            <p class="mb-0 opacity-75">Completa tu información para finalizar la compra</p>
+            
+            <!-- Indicador de Pasos -->
+            <div class="step-indicator">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Menú</div>
+                </div>
+                <div class="step active">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Checkout</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Confirmar</div>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('generar_pedido') }}" class="checkout-card" id="checkoutForm">
+            <div class="form-section">
+                <!-- Información Personal -->
+                <h5 class="fw-bold text-kinoa-oscuro mb-4">
+                    <i class="bi bi-person-circle me-2"></i>Información del Cliente
+                </h5>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombre" 
+                                   name="nombre" 
+                                   placeholder="Nombre Completo"
+                                   value="{{ perfil_actual.nombre + ' ' + perfil_actual.apellidoP if perfil_actual and perfil_actual.nombre else '' }}"
+                                   required>
+                            <label for="nombre">Nombre Completo *</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="telefono" 
+                                   name="telefono" 
+                                   placeholder="Teléfono"
+                                   value="{{ usuario_actual.telefono if usuario_actual else '' }}"
+                                   required>
+                            <label for="telefono">Teléfono *</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dirección de Entrega -->
+                <h5 class="fw-bold text-kinoa-oscuro mb-4 mt-5">
+                    <i class="bi bi-geo-alt me-2"></i>Dirección de Entrega
+                </h5>
+                
+                <div class="address-fields">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="colonia" 
+                                       name="colonia" 
+                                       placeholder="Colonia"
+                                       value="{{ perfil_actual.colonia if perfil_actual else '' }}"
+                                       required>
+                                <label for="colonia">Colonia *</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="calle" 
+                                       name="calle" 
+                                       placeholder="Calle"
+                                       value="{{ perfil_actual.calle if perfil_actual else '' }}"
+                                       required>
+                                <label for="calle">Calle *</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="no_exterior" 
+                                       name="no_exterior" 
+                                       placeholder="Número Exterior"
+                                       value="{{ perfil_actual.no_exterior if perfil_actual else '' }}"
+                                       required>
+                                <label for="no_exterior">Número Exterior *</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="no_interior" 
+                                       name="no_interior" 
+                                       placeholder="Número Interior (opcional)"
+                                       value="{{ perfil_actual.no_interior if perfil_actual else '' }}">
+                                <label for="no_interior">Número Interior (opcional)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instrucciones Especiales -->
+                <h5 class="fw-bold text-kinoa-oscuro mb-4">
+                    <i class="bi bi-chat-dots me-2"></i>Instrucciones Especiales
+                </h5>
+                
+                <div class="mb-4">
+                    <div class="form-floating">
+                        <textarea class="form-control" 
+                                  id="notas" 
+                                  name="notas" 
+                                  placeholder="Instrucciones especiales"
+                                  style="height: 100px"></textarea>
+                        <label for="notas">Ej: Sin cebolla, entregar en portería, etc.</label>
+                    </div>
+                </div>
+
+                <!-- Resumen del Pedido -->
+                <div class="order-summary" id="order-summary">
+                    <h5 class="fw-bold text-kinoa-oscuro mb-4">
+                        <i class="bi bi-receipt me-2"></i>Resumen del Pedido
+                    </h5>
+                    <div id="summary-items">
+                        <!-- Los productos se cargarán con JavaScript -->
+                        <div class="empty-cart-message" id="empty-cart-message">
+                            <i class="bi bi-cart-x fs-1 mb-3"></i>
+                            <p>Tu carrito está vacío</p>
+                            <a href="{{ url_for('menu') }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i>Volver al Menú
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4">
+                        <div class="order-item-summary">
+                            <div class="fw-bold">Subtotal:</div>
+                            <div class="fw-bold" id="summary-subtotal">$0.00</div>
+                        </div>
+                        <div class="order-item-summary">
+                            <div>Envío:</div>
+                            <div class="text-success">GRATIS</div>
+                        </div>
+                        <div class="order-item-summary">
+                            <div>Impuestos (12%):</div>
+                            <div id="summary-tax">$0.00</div>
+                        </div>
+                        <h4 class="fw-bold text-danger mt-3" id="summary-total">$0.00</h4>
+                        <small class="text-muted">Incluye impuestos</small>
+                    </div>
+                </div>
+
+                <!-- Campos ocultos para los items del carrito -->
+                <div id="hidden-items-container">
+                    <!-- Los campos ocultos se generarán con JavaScript -->
+                </div>
+
+                <!-- Botón de Envío -->
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                    <i class="bi bi-check-lg"></i>
+                    <span>Confirmar Pedido</span>
+                </button>
+
+                <!-- Botón para regresar -->
+                <a href="{{ url_for('menu') }}" class="btn btn-outline-primary w-100 mt-3">
+                    <i class="bi bi-arrow-left me-2"></i>Volver al Menú
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cart = JSON.parse(localStorage.getItem('sushiCart')) || [];
+    const summaryItems = document.getElementById('summary-items');
+    const hiddenItemsContainer = document.getElementById('hidden-items-container');
+    const emptyCartMessage = document.getElementById('empty-cart-message');
+    const form = document.getElementById('checkoutForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const summarySubtotal = document.getElementById('summary-subtotal');
+    const summaryTax = document.getElementById('summary-tax');
+    const summaryTotal = document.getElementById('summary-total');
+    
+    // Renderizar resumen y campos ocultos
+    function renderSummary() {
+        if (cart.length === 0) {
+            summaryItems.innerHTML = `
+                <div class="empty-cart-message" id="empty-cart-message">
+                    <i class="bi bi-cart-x fs-1 mb-3"></i>
+                    <p>Tu carrito está vacío</p>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i>Volver al Menú
+                    </a>
+                </div>
+            `;
+            summarySubtotal.textContent = '$0.00';
+            summaryTax.textContent = '$0.00';
+            summaryTotal.textContent = '$0.00';
+            submitBtn.disabled = true;
+            hiddenItemsContainer.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        let subtotal = 0;
+        let hiddenHtml = '';
+        
+        cart.forEach((item, index) => {
+            // Validar y convertir valores
+            const itemId = item.id ? parseInt(item.id) : 0;
+            const itemPrecio = item.precio ? parseFloat(item.precio) : 0;
+            const itemCantidad = item.cantidad ? parseInt(item.cantidad) : 0;
+            
+            // Solo procesar si tenemos valores válidos
+            if (itemId > 0 && itemPrecio > 0 && itemCantidad > 0) {
+                const itemTotal = itemPrecio * itemCantidad;
+                subtotal += itemTotal;
+                
+                // Item visible en el resumen con botón para eliminar
+                html += `
+                    <div class="order-item-summary" data-index="${index}">
+                        <button type="button" class="delete-item-btn" onclick="removeItem(${index})">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <div class="item-details">
+                            <div class="d-flex justify-content-between">
+                                <strong>${item.nombre || 'Producto'}</strong>
+                                <strong class="text-danger">$${itemTotal.toFixed(2)}</strong>
+                            </div>
+                            <div class="item-quantity-control">
+                                <button type="button" class="qty-btn-small" onclick="updateItemQuantity(${index}, -1)">−</button>
+                                <input type="text" class="qty-input-small" value="${itemCantidad}" readonly id="item-qty-${index}">
+                                <button type="button" class="qty-btn-small" onclick="updateItemQuantity(${index}, 1)">+</button>
+                                <small class="text-muted ms-2">$${itemPrecio.toFixed(2)} c/u</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Campos ocultos para el formulario
+                hiddenHtml += `
+                    <input type="hidden" name="items[${itemId}][cantidad]" value="${itemCantidad}" id="hidden-qty-${itemId}">
+                    <input type="hidden" name="items[${itemId}][precio]" value="${itemPrecio}" id="hidden-precio-${itemId}">
+                `;
+            }
+        });
+        
+        // Si no hay items válidos después de filtrar
+        if (subtotal === 0) {
+            summaryItems.innerHTML = `
+                <div class="empty-cart-message" id="empty-cart-message">
+                    <i class="bi bi-cart-x fs-1 mb-3"></i>
+                    <p>Carrito vacío o datos inválidos</p>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i>Volver al Menú
+                    </a>
+                </div>
+            `;
+            summarySubtotal.textContent = '$0.00';
+            summaryTax.textContent = '$0.00';
+            summaryTotal.textContent = '$0.00';
+            submitBtn.disabled = true;
+            hiddenItemsContainer.innerHTML = '';
+            return;
+        }
+        
+        const tax = subtotal * 0.12;
+        const total = subtotal + tax;
+        
+        summaryItems.innerHTML = html;
+        hiddenItemsContainer.innerHTML = hiddenHtml;
+        summarySubtotal.textContent = `$${subtotal.toFixed(2)}`;
+        summaryTax.textContent = `$${tax.toFixed(2)}`;
+        summaryTotal.textContent = `$${total.toFixed(2)}`;
+        submitBtn.disabled = false;
+        
+        // Ocultar mensaje de carrito vacío
+        if (emptyCartMessage) {
+            emptyCartMessage.style.display = 'none';
+        }
+    }
+    
+    // Función para eliminar un item del carrito
+    window.removeItem = function(index) {
+        if (index >= 0 && index < cart.length) {
+            if (confirm('¿Eliminar este producto del carrito?')) {
+                cart.splice(index, 1);
+                localStorage.setItem('sushiCart', JSON.stringify(cart));
+                renderSummary();
+                updateCartCounter();
+                showNotification('Producto eliminado del carrito', 'warning');
+            }
+        }
+    };
+    
+    // Función para actualizar cantidad de un item
+    window.updateItemQuantity = function(index, delta) {
+        if (cart[index]) {
+            const newQty = cart[index].cantidad + delta;
+            if (newQty >= 1 && newQty <= 99) {
+                cart[index].cantidad = newQty;
+                localStorage.setItem('sushiCart', JSON.stringify(cart));
+                renderSummary();
+                updateCartCounter();
+            }
+        }
+    };
+    
+    // Función para actualizar el contador del carrito en el navbar
+    function updateCartCounter() {
+        // Actualizar contador en esta página
+        const cartCount = document.getElementById('cart-item-count');
+        if (cartCount) {
+            const totalItems = cart.reduce((sum, item) => sum + item.cantidad, 0);
+            cartCount.textContent = totalItems;
+        }
+        
+        // También intentar actualizar en la página del menú (si está abierta)
+        if (window.opener && !window.opener.closed) {
+            try {
+                window.opener.postMessage({ type: 'UPDATE_CART_COUNT', count: cart.reduce((sum, item) => sum + item.cantidad, 0) }, '*');
+            } catch (e) {
+                console.log('No se pudo actualizar el contador en la ventana padre');
+            }
+        }
+    }
+    
+    // Función para mostrar notificaciones
+    function showNotification(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed top-0 end-0 p-3';
+        toast.style.zIndex = '9999';
+        
+        toast.innerHTML = `
+            <div class="toast show" role="alert">
+                <div class="toast-header ${type === 'warning' ? 'bg-warning' : 'bg-info text-white'}">
+                    <strong class="me-auto">Kinoa Rolls</strong>
+                    <button type="button" class="btn-close ${type !== 'warning' ? 'btn-close-white' : ''}" 
+                            onclick="this.closest('.toast').remove()"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+    
+    // Validar formulario antes de enviar
+    form.addEventListener('submit', function(e) {
+        const cart = JSON.parse(localStorage.getItem('sushiCart')) || [];
+        if (cart.length === 0) {
+            e.preventDefault();
+            alert('Tu carrito está vacío. Agrega productos antes de continuar.');
+            return false;
+        }
+        
+        // Validar campos de dirección
+        const colonia = document.getElementById('colonia').value.trim();
+        const calle = document.getElementById('calle').value.trim();
+        const noExterior = document.getElementById('no_exterior').value.trim();
+        
+        if (!colonia || !calle || !noExterior) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos de dirección obligatorios.');
+            return false;
+        }
+        
+        // Validar nombre y teléfono
+        const nombre = document.getElementById('nombre').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        
+        if (!nombre || !telefono) {
+            e.preventDefault();
+            alert('Por favor completa tu nombre y teléfono.');
+            return false;
+        }
+        
+        // Mostrar loader en el botón
+        submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Procesando...';
+        submitBtn.disabled = true;
+        
+        // IMPORTANTE: Limpiar el carrito después de enviar el pedido
+        setTimeout(() => {
+            localStorage.removeItem('sushiCart');
+        }, 1000);
+        
+        // Continuar con el envío del formulario
+        return true;
+    });
+    
+    // Inicializar
+    renderSummary();
+    updateCartCounter();
+    
+    // Escuchar mensajes para actualizar el contador
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'UPDATE_CART_COUNT') {
+            const cartCount = document.getElementById('cart-item-count');
+            if (cartCount) {
+                cartCount.textContent = event.data.count;
+            }
+        }
+    });
+    
+    // Verificar carrito cada 5 segundos
+    setInterval(() => {
+        const currentCart = JSON.parse(localStorage.getItem('sushiCart')) || [];
+        if (JSON.stringify(currentCart) !== JSON.stringify(cart)) {
+            location.reload();
+        }
+    }, 5000);
+});
+</script>
+{% endblock %}

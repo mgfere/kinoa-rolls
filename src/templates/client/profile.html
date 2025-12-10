@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - {{ usuario.nombre_usuario if usuario else 'Usuario' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        /* Definición de variables y estilos base Kinoa */
+        :root {
+            --kinoa-verde-claro: #e9f7e9; /* Fondo verde muy claro */
+            --kinoa-verde-oscuro: #2e602e; /* Texto verde oscuro */
+            --kinoa-verde-exito: #5cb85c; /* Verde para éxito/botones */
+        }
+        
+        /* Estilos del Navbar Kinoa */
+        .navbar-kinoa {
+            background-color: var(--kinoa-verde-claro) !important;
+            border-bottom: 2px solid var(--kinoa-verde-exito);
+            padding-top: 0.5rem; 
+            padding-bottom: 0.5rem;
+        }
+        .navbar-kinoa .navbar-brand,
+        .navbar-kinoa .text-kinoa-dark,
+        .navbar-kinoa .bi {
+            color: var(--kinoa-verde-oscuro) !important;
+        }
+        .navbar-kinoa .btn-outline-dark-kinoa {
+            color: var(--kinoa-verde-oscuro);
+            border-color: var(--kinoa-verde-oscuro);
+            font-size: 0.8rem; 
+        }
+        .navbar-kinoa .btn-outline-dark-kinoa:hover {
+            background-color: var(--kinoa-verde-oscuro);
+            color: white;
+        }
+        .navbar-brand img {
+            width: 60px; /* Reducido para consistencia con el navbar */
+            height: 60px; 
+        }
+
+        /* Ajuste para el contenido principal */
+        .container {
+            margin-top: 0rem; 
+        }
+
+        /* Estilos para el navbar de perfil para consistencia */
+        .navbar-profile-image {
+            width: 25px;
+            height: 25px;
+            border: 1px solid var(--kinoa-verde-oscuro);
+            object-fit: cover;
+        }
+        .navbar-profile-link {
+            transition: opacity 0.2s;
+        }
+        .navbar-profile-link:hover {
+            opacity: 0.8;
+        }
+
+        /* === ESTILOS ESPECÍFICOS DEL PERFIL === */
+        .text-primary {
+            color: var(--kinoa-verde-oscuro) !important;
+        }
+        .btn-success {
+            background-color: var(--kinoa-verde-exito) !important;
+            border-color: var(--kinoa-verde-exito) !important;
+        }
+        .profile-card {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .profile-header {
+            padding: 30px 20px 20px;
+            background-color: var(--kinoa-verde-claro);
+            border-bottom: 1px solid #ddd;
+        }
+        .profile-picture-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border: 5px solid white; /* Borde blanco para resaltar */
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .profile-picture {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .text-kinoa-dark {
+             color: var(--kinoa-verde-oscuro);
+        }
+
+        /* Estilos para los grupos de información */
+        .info-group {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .info-group i {
+            font-size: 1.5rem;
+            color: var(--kinoa-verde-exito);
+            margin-right: 15px;
+            width: 30px; /* Ancho fijo para alineación */
+            text-align: center;
+        }
+        .info-group strong {
+            display: block;
+            color: var(--kinoa-verde-oscuro);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-kinoa shadow-sm">
+        <div class="container-fluid container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{% if es_admin_func() %}{{ url_for('admin_dashboard') }}{% else %}{{ url_for('menu') }}{% endif %}">
+                <img src="{{ url_for('static', filename='images/logo_kinoa_rolls.png') }}" width="30" height="30" alt="Logo Kinoa Rolls">
+                <span class="ms-2">Kinoa Rolls</span>
+            </a>
+            
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('profile') }}" class="me-3 d-flex align-items-center text-decoration-none text-kinoa-dark navbar-profile-link" title="Ver Perfil">
+                    <span class="me-2 d-none d-md-inline text-kinoa-dark fw-bold">
+                        {{ usuario.nombre_usuario if usuario else 'Invitado' }}
+                    </span>
+                    
+                    {% if perfil and perfil.foto_perfil %}
+                    <img src="{{ url_for('profile_picture', usuario_id=usuario.id_usuario) }}" 
+                         class="rounded-circle navbar-profile-image" alt="Foto de Perfil">
+                    {% else %}
+                    <i class="bi bi-person-circle fs-5"></i>
+                    {% endif %}
+                </a>
+                
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-dark-kinoa d-flex align-items-center" title="Cerrar Sesión">
+                    <i class="bi bi-box-arrow-right me-1"></i> Salir
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4 display-5"><i class="bi bi-person-circle me-2"></i> Mi Perfil</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% if usuario %}
+        <div class="card profile-card shadow-lg">
+            
+            <div class="profile-header text-center">
+                <div class="profile-picture-container mb-3">
+                    {% if perfil and perfil.foto_perfil %}
+                        <img src="{{ url_for('profile_picture', usuario_id=usuario.id_usuario) }}" 
+                             class="rounded-circle profile-picture" alt="Foto de perfil">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                             style="width: 100%; height: 100%;">
+                            <i class="bi bi-person-fill" style="font-size: 4rem; color: white;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <h4 class="mb-1 text-kinoa-dark fw-bold">
+                    {{ perfil.nombre if perfil and perfil.nombre else 'Mi Nombre' }} 
+                    {{ perfil.apellidoP if perfil and perfil.apellidoP else '' }} 
+                    {{ perfil.apellidoM if perfil and perfil.apellidoM else '' }}
+                </h4>
+                
+                <span class="badge fs-6 
+                    {% if usuario.rol.nombre == 'admin' %}bg-success{% elif usuario.rol.nombre == 'cliente' %}bg-primary{% else %}bg-secondary{% endif %} 
+                    text-uppercase">
+                    <i class="bi bi-person-badge"></i> {{ usuario.rol.nombre if usuario.rol else 'CLIENTE' }}
+                </span>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row">
+                    
+                    <div class="col-lg-6 mb-4 mb-lg-0 border-end">
+                        <h5 class="text-primary mb-3"><i class="bi bi-info-circle-fill"></i> Detalles de la Cuenta</h5>
+                        
+                        <div class="info-group">
+                            <i class="bi bi-person-circle"></i>
+                            <div>
+                                <small class="text-muted d-block">Nombre de Usuario</small>
+                                <strong>{{ usuario.nombre_usuario }}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <i class="bi bi-telephone-fill"></i>
+                            <div>
+                                <small class="text-muted d-block">Teléfono</small>
+                                <strong>{{ usuario.telefono or 'No registrado' }}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <i class="bi bi-envelope-fill"></i>
+                            <div>
+                                <small class="text-muted d-block">Correo Electrónico</small>
+                                <strong>{{ perfil.email if perfil and perfil.email else 'No especificado' }}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group border-bottom-0">
+                            <i class="bi bi-calendar-check"></i>
+                            <div>
+                                <small class="text-muted d-block">Fecha de Registro</small>
+                                <strong>
+                                    {% if usuario.fecha_registro %}
+                                        {{ usuario.fecha_registro.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6 ps-lg-4">
+                        <h5 class="text-primary mb-3"><i class="bi bi-house-door-fill"></i> Dirección de Entrega</h5>
+                        
+                        <div class="info-group">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <div>
+                                <small class="text-muted d-block">Dirección Completa</small>
+                                <strong>
+                                    {% if perfil and perfil.calle %}
+                                        {{ perfil.calle }} #{{ perfil.no_exterior if perfil.no_exterior else 'S/N' }}
+                                    {% else %}
+                                        No especificada
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                        
+                        <div class="info-group">
+                            <i class="bi bi-map-fill"></i>
+                            <div>
+                                <small class="text-muted d-block">Colonia</small>
+                                <strong>{{ perfil.colonia if perfil and perfil.colonia else 'No especificada' }}</strong>
+                            </div>
+                        </div>
+                        
+                        <h5 class="text-primary my-3 pt-3"><i class="bi bi-activity"></i> Estado</h5>
+                        <div class="info-group border-bottom-0">
+                            <i class="bi bi-toggle-on"></i>
+                            <div>
+                                <small class="text-muted d-block">Estado de la Cuenta</small>
+                                <span class="badge fs-6 {% if usuario.activo %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ 'Activo' if usuario.activo else 'Inactivo' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="{{ url_for('profile_edit') }}" class="btn btn-lg btn-success">
+                        <i class="bi bi-pencil-square"></i> Editar Perfil
+                    </a>
+                    
+                    {% if perfil and perfil.foto_perfil %}
+                        <form method="POST" action="{{ url_for('delete_profile_picture') }}" 
+                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?')">
+                            <button type="submit" class="btn btn-lg btn-danger">
+                                <i class="bi bi-trash"></i> Eliminar Foto
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if es_admin_func() %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-lg btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('menu') }}" class="btn btn-lg btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver al Menú
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning p-4">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Error de Sesión</h4>
+            <p>No se encontró información del usuario. Por favor, <a href="{{ url_for('logout') }}">inicia sesión nuevamente</a> para acceder a tu perfil.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

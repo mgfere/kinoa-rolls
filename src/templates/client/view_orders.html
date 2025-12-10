@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Pedidos{% endblock %}
+
+{% block customCSS %}
+<style>
+    /* Estilos Generales y Tarjetas */
+    body {
+        background-color: #f0f2f5;
+        padding-top: 30px;
+    }
+    
+    .header-section {
+        margin-bottom: 30px;
+    }
+    
+    .back-to-menu {
+        color: #4caf50;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .back-to-menu:hover {
+        color: #2e7d32;
+        text-decoration: underline;
+    }
+    
+    .order-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.2s;
+    }
+    .order-card:hover {
+        transform: translateY(-3px);
+    }
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    .order-id {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #343a40;
+    }
+    .order-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 3px;
+    }
+    
+    /* Estilos de Estado */
+    .order-status {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        white-space: nowrap;
+    }
+    .status-pendiente { background: #ffe0b2; color: #ff9800; }
+    .status-en-preparacion { background: #bbdefb; color: #2196f3; }
+    .status-enviado { background: #c8e6c9; color: #4caf50; }
+    .status-entregado { background: #e0f2f1; color: #009688; }
+    .status-cancelado { background: #ffcdd2; color: #f44336; }
+
+    .order-summary {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .order-summary li {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 1rem;
+        border-bottom: 1px dashed #f0f0f0;
+    }
+    .order-summary li:last-child {
+        border-bottom: none;
+    }
+    .product-name {
+        color: #495057;
+    }
+    .product-quantity {
+        color: #888;
+        font-size: 0.85rem;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 10px; 
+        /* Alineación vertical */
+        align-items: center;
+    }
+    .order-footer {
+        text-align: right;
+        padding-top: 15px;
+        border-top: 1px solid #e9ecef;
+        margin-top: 15px;
+    }
+    .order-total {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #4caf50;
+    }
+    .btn-cancel {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-cancel:hover {
+        background-color: #d32f2f;
+    }
+    
+    /* Barra de progreso */
+    .progress-container {
+        margin: 20px 0;
+    }
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    .progress-step {
+        text-align: center;
+        flex: 1;
+        color: #6c757d;
+        font-size: 0.85rem;
+        position: relative;
+        z-index: 2;
+    }
+    .progress-step.active {
+        color: #4caf50;
+        font-weight: 600;
+    }
+    .progress-line {
+        position: absolute;
+        top: 15px;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #4caf50;
+        border-radius: 3px;
+        transition: width 0.3s;
+    }
+    
+    /* Estado vacío */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+
+    /* Estilo para el spinner de carga */
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1">
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-2">
+                            <i class="bi bi-basket me-2"></i> Historial de Pedidos
+                        </h2>
+                        <p class="text-muted mb-0">Revisa el estado y detalles de tus pedidos</p>
+                    </div>
+                    <a href="{{ url_for('menu') }}" class="back-to-menu">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al Menú
+                    </a>
+                </div>
+            </div>
+            
+            {% if pedidos %}
+                {% for pedido in pedidos %}
+                {# Convertir el estado a clase CSS (ej: 'en_preparacion' -> 'en-preparacion') #}
+                {% set status_class = 'status-' ~ pedido.estado.replace('_', '-') %}
+
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">
+                                Pedido #{{ pedido.codigo_pedido }}
+                            </div>
+                            <div class="order-date">
+                                {% if pedido.fecha_creacion %}
+                                    Fecha: {{ pedido.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                    Fecha no disponible
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="order-status {{ status_class }}">
+                            {# Mostrar el texto del estado traducido #}
+                            {% if pedido.estado == 'pendiente' %}
+                                <i class="bi bi-clock me-1"></i> Pendiente
+                            {% elif pedido.estado == 'en_preparacion' %}
+                                <i class="bi bi-egg-fried me-1"></i> En preparación
+                            {% elif pedido.estado == 'enviado' %}
+                                <i class="bi bi-truck me-1"></i> En camino
+                            {% elif pedido.estado == 'entregado' %}
+                                <i class="bi bi-check-circle me-1"></i> Entregado
+                            {% elif pedido.estado == 'cancelado' %}
+                                <i class="bi bi-x-circle me-1"></i> Cancelado
+                            {% else %}
+                                {{ pedido.estado }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-steps">
+                            <div class="progress-step {% if pedido.estado in ['pendiente', 'en_preparacion', 'enviado', 'entregado'] %}active{% endif %}">
+                                <i class="bi bi-check-circle d-block mb-1"></i>
+                                <small>Confirmado</small>
+                            </div>
+                            <div class="progress-step {% if pedido.estado in ['en_preparacion', 'enviado', 'entregado'] %}active{% endif %}">
+                                <i class="bi bi-egg-fried d-block mb-1"></i>
+                                <small>Preparando</small>
+                            </div>
+                            <div class="progress-step {% if pedido.estado in ['enviado', 'entregado'] %}active{% endif %}">
+                                <i class="bi bi-truck d-block mb-1"></i>
+                                <small>En camino</small>
+                            </div>
+                            <div class="progress-step {% if pedido.estado == 'entregado' %}active{% endif %}">
+                                <i class="bi bi-house-check d-block mb-1"></i>
+                                <small>Entregado</small>
+                            </div>
+                        </div>
+                        {% if pedido.estado == 'pendiente' %}
+                            {% set progress_width = '25%' %}
+                        {% elif pedido.estado == 'en_preparacion' %}
+                            {% set progress_width = '50%' %}
+                        {% elif pedido.estado == 'enviado' %}
+                            {% set progress_width = '75%' %}
+                        {% elif pedido.estado == 'entregado' %}
+                            {% set progress_width = '100%' %}
+                        {% else %}
+                            {# Default o cancelado #}
+                            {% set progress_width = '0%' %}
+                        {% endif %}
+
+                        {% if pedido.estado != 'cancelado' %}
+                            <div class="progress-line">
+                                <div class="progress-fill" style="width: progress_width;"></div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <ul class="order-summary">
+                        {% if pedido.detalles %}
+                            {% for detalle in pedido.detalles %}
+                            <li>
+                                <span class="product-name">{{ detalle.producto.nombre }}</span>
+                                <span>
+                                    <span class="product-quantity">{{ detalle.cantidad }} x ${{ "%.2f"|format(detalle.precio_unitario) }}</span>
+                                    <strong>${{ "%.2f"|format(detalle.cantidad * detalle.precio_unitario) }}</strong>
+                                </span>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li><p class="text-muted">Sin detalles disponibles</p></li>
+                        {% endif %}
+                    </ul>
+                    
+                    <div class="order-footer">
+                        <div class="order-total mb-3">
+                            Total: ${{ "%.2f"|format(pedido.total) }}
+                        </div>
+                        
+                        <div class="order-actions">
+                            <a href="{{ url_for('order_details', pedido_id=pedido.id_pedido) }}" 
+                               class="btn btn-sm btn-outline-success me-2">
+                                <i class="bi bi-eye"></i> Ver Detalles Completos
+                            </a>
+                            
+                            {% if pedido.estado == 'pendiente' %}
+                            <button type="button" 
+                                        class="btn-cancel cancel-order-btn" 
+                                        data-order-id="{{ pedido.id_pedido }}" 
+                                        data-order-code="{{ pedido.codigo_pedido }}"
+                                        data-bs-toggle="modal"  data-bs-target="#confirmCancelModal"> 
+                                <i class="bi bi-x-circle"></i> Cancelar Pedido
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-basket"></i>
+                    <h4 class="mb-3">¡Aún no tienes pedidos!</h4>
+                    <p class="text-muted mb-4">Realiza tu primer pedido desde nuestro menú y aparecerá aquí.</p>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-basket me-2"></i> Ir al Menú
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Cancelación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas cancelar el pedido <strong id="modalOrderCode"></strong>? Esta acción no se puede deshacer.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
+                <button type="button" class="btn btn-danger" id="confirmCancelBtn">Sí, cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Variables globales
+    let currentOrderId = null;
+    let currentOrderCode = null;
+    
+    // Función SIMPLE para mostrar mensajes (sin Bootstrap Toast complicado)
+    function showAlert(message, type = 'success') {
+        // Crear un div flotante simple
+        const alertDiv = document.createElement('div');
+        alertDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background: ${type === 'success' ? '#4caf50' : '#f44336'};
+            color: white;
+            border-radius: 5px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        alertDiv.innerHTML = message;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remover después de 3 segundos
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+    
+    // Función para ELIMINAR pedido (MÉTODO DIRECTO)
+    function eliminarPedido(orderId) {
+        console.log('Intentando eliminar pedido:', orderId);
+        
+        const confirmBtn = document.getElementById('confirmCancelBtn');
+        
+        // Mostrar que está procesando
+        confirmBtn.innerHTML = '<i class="bi bi-trash me-2"></i> Eliminando...';
+        confirmBtn.disabled = true;
+        
+        // Enviar petición SIMPLE
+        fetch(`/cancel_order/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            console.log('Respuesta HTTP:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Respuesta JSON:', data);
+            
+            // Cerrar modal manualmente
+            const modal = document.getElementById('confirmCancelModal');
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+            
+            if (data.success) {
+                showAlert('✅ Pedido eliminado correctamente', 'success');
+                // Recargar la página después de 1 segundo
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showAlert(`❌ Error: ${data.error || 'No se pudo eliminar'}`, 'danger');
+                confirmBtn.innerHTML = 'Sí, eliminar';
+                confirmBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error completo:', error);
+            showAlert('🚨 Error de conexión con el servidor', 'danger');
+            confirmBtn.innerHTML = 'Sí, eliminar';
+            confirmBtn.disabled = false;
+        });
+    }
+    
+    // INICIALIZACIÓN SIMPLE - cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Página cargada, inicializando botones...');
+        
+        // Configurar TODOS los botones de cancelar
+        document.querySelectorAll('.cancel-order-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Botón clickeado:', this);
+                
+                // Obtener datos del pedido
+                currentOrderId = this.getAttribute('data-order-id');
+                currentOrderCode = this.getAttribute('data-order-code');
+                
+                console.log('ID del pedido:', currentOrderId);
+                console.log('Código del pedido:', currentOrderCode);
+                
+                if (!currentOrderId || !currentOrderCode) {
+                    alert('Error: No se encontraron datos del pedido');
+                    return;
+                }
+                
+                // Actualizar texto del modal
+                document.getElementById('modalOrderCode').textContent = `#${currentOrderCode}`;
+                
+                // Mostrar modal MANUALMENTE (por si Bootstrap no funciona)
+                const modal = document.getElementById('confirmCancelModal');
+                if (modal) {
+                    modal.classList.add('show');
+                    modal.style.display = 'block';
+                    document.body.classList.add('modal-open');
+                    
+                    // Agregar backdrop si no existe
+                    if (!document.querySelector('.modal-backdrop')) {
+                        const backdrop = document.createElement('div');
+                        backdrop.className = 'modal-backdrop fade show';
+                        document.body.appendChild(backdrop);
+                    }
+                }
+            });
+        });
+        
+        // Configurar botón de confirmación en el modal
+        const confirmBtn = document.getElementById('confirmCancelBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                if (currentOrderId) {
+                    console.log('Confirmando eliminación de pedido:', currentOrderId);
+                    eliminarPedido(currentOrderId);
+                } else {
+                    alert('Error: No hay pedido seleccionado');
+                }
+            });
+        }
+        
+        // Configurar botón para cerrar modal
+        const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = document.getElementById('confirmCancelModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                }
+            });
+        });
+        
+        // Cerrar modal al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('confirmCancelModal');
+            if (modal && e.target === modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+        });
+        
+        console.log('Botones configurados. Total:', document.querySelectorAll('.cancel-order-btn').length);
+    });
+</script>
+{% endblock %}
