@@ -40,6 +40,20 @@
             height: 60px; 
         }
 
+        /* 🟢 TAMAÑO DE IMAGEN DE PERFIL CORREGIDO */
+        .navbar-profile-image {
+            width: 38px !important;      /* Tamaño específico */
+            height: 38px !important;     /* Tamaño específico */
+            object-fit: cover;           /* Para que no se deforme */
+            border: 2px solid var(--kinoa-verde-exito); /* Opcional: borde */
+            box-shadow: 0 2px 4px rgba(46, 96, 46, 0.2); /* Opcional: sombra */
+        }
+
+        /* 🟢 SOLUCIÓN PRINCIPAL: Compensar el navbar fixed-top */
+        .container {
+            margin-top: 6rem !important; /* Ajusta este valor si el navbar tiene más o menos altura */
+        }
+
         /* 🟢 CORRECCIÓN: Ajuste para el contenido principal debido a 'fixed-top' */
         .container {
             margin-top: 6rem !important; /* Ajusta el margen para que no se oculte debajo del navbar */
@@ -62,10 +76,11 @@
             <div class="d-flex align-items-center">
                 <a href="{{ url_for('profile') }}" class="me-3 d-flex align-items-center text-decoration-none text-kinoa-dark" title="Ver Perfil">
                     <span class="me-2 d-none d-md-inline text-kinoa-dark fw-bold">{{ usuario_actual.nombre_usuario }}</span>
-                    {% if usuario_actual.perfil and usuario_actual.perfil.foto_perfil %}
-                    <img src="{{ url_for('profile_picture', usuario_id=usuario_actual.id_usuario) }}" class="rounded-circle border border-1 border-kinoa-dark" width="25" height="25" alt="Foto de Perfil">
+                    {% if perfil_actual and perfil_actual.foto_perfil %}
+                    <img src="{{ url_for('profile_picture', usuario_id=usuario_actual.id_usuario) }}" 
+                        class="rounded-circle navbar-profile-image" alt="Foto de Perfil">
                     {% else %}
-                    <i class="bi bi-person-circle fs-5"></i>
+                    <i class="bi bi-person-circle fs-4"></i>
                     {% endif %}
                 </a>
                 

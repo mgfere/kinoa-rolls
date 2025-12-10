@@ -334,8 +334,9 @@ def admin_menu_preview():
 @requiere_login
 def carrito():
     """Página del carrito de compras"""
-    if es_admin():
-        return redirect(url_for('admin_dashboard'))
+    # ELIMINA esta condición:
+    # if es_admin():
+    #     return redirect(url_for('admin_dashboard'))
     
     return render_template('client/carrito.html')
 
@@ -343,68 +344,21 @@ def carrito():
 @requiere_login
 def orders():
     """Página de checkout/confirmación de pedido"""
-    if es_admin():
-        return redirect(url_for('admin_dashboard'))
+    # ELIMINA esta condición:
+    # if es_admin():
+    #     return redirect(url_for('admin_dashboard'))
     
     usuario = get_usuario_actual()
     perfil = get_perfil_usuario_actual()
     
     return render_template('client/orders.html')
 
-@app.route('/cancel_order/<int:order_id>', methods=['POST'])
-@requiere_login
-def cancel_order(order_id):
-    """ELIMINA PERMANENTEMENTE el pedido de la base de datos"""
-    usuario = get_usuario_actual()
-    
-    if not usuario:
-        return jsonify({'success': False, 'error': 'Usuario no autenticado'}), 401
-    
-    print(f"DEBUG: Usuario {usuario.id_usuario} intentando eliminar pedido {order_id}")
-    
-    # Buscar el pedido
-    pedido = db_session.query(Pedido).filter(
-        Pedido.id_pedido == order_id,
-        Pedido.id_usuario == usuario.id_usuario
-    ).first()
-    
-    if not pedido:
-        print(f"DEBUG: Pedido {order_id} no encontrado o no pertenece al usuario")
-        return jsonify({'success': False, 'error': 'Pedido no encontrado o no tienes permisos'}), 404
-    
-    try:
-        # VERSIÓN SEGURA: Usar SQL directo para evitar problemas de relaciones
-        print(f"DEBUG: Eliminando detalles del pedido {order_id}")
-        
-        # Eliminar detalles primero
-        db_session.execute(
-            text("DELETE FROM detalles_pedido WHERE id_pedido = :pid"),
-            {"pid": order_id}
-        )
-        
-        print(f"DEBUG: Eliminando pedido {order_id}")
-        
-        # Eliminar el pedido
-        db_session.delete(pedido)
-        db_session.commit()
-        
-        print(f"DEBUG: Pedido {order_id} eliminado exitosamente")
-        
-        return jsonify({
-            'success': True, 
-            'message': f'Pedido #{pedido.codigo_pedido} eliminado correctamente'
-        })
-        
-    except Exception as e:
-        db_session.rollback()
-        print(f"ERROR CRÍTICO al eliminar pedido {order_id}: {str(e)}")
-        return jsonify({'success': False, 'error': f'Error del servidor: {str(e)}'}), 500
-
 @app.route('/mis_pedidos')
 @requiere_login
 def mis_pedidos():
-    if es_admin():
-        return redirect(url_for('admin_dashboard'))
+    # ELIMINA esta condición:
+    # if es_admin():
+    #     return redirect(url_for('admin_dashboard'))
     
     usuario = get_usuario_actual()
     pedidos = db_session.query(Pedido).filter_by(id_usuario=usuario.id_usuario)\
@@ -438,8 +392,8 @@ def debug_pedidos():
 @app.route('/order_details/<int:pedido_id>')
 @requiere_login
 def order_details(pedido_id):
-    if es_admin():
-        return redirect(url_for('admin_dashboard'))
+    # if es_admin():
+    #     return redirect(url_for('admin_dashboard'))
     
     usuario = get_usuario_actual()
     pedido = db_session.query(Pedido).filter(
